@@ -1,3 +1,3 @@
 @echo off
-node src/main.js
+node core/main.js
 pause

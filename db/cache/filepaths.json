@@ -11,29 +11,26 @@
     "assort": {},
     "bots": {
         "base": "",
-        "pmc": {
-            "bear": {},
-            "usec": {}
-        },
-        "scav": {
-            "assault": {},
-            "bossbully": {},
-            "bossgluhar": {},
-            "bosskilla": {},
-            "bosskojaniy": {},
-            "followerbully": {},
-            "followergluharassault": {},
-            "followergluharscout": {},
-            "followergluharsecurity": {},
-            "followerkojaniy": {},
-            "marksman": {},
-            "pmcbot": {}
-        }
+        "assault": {},
+        "bear": {},
+        "bossbully": {},
+        "bossgluhar": {},
+        "bosskilla": {},
+        "bosskojaniy": {},
+        "followerbully": {},
+        "followergluharassault": {},
+        "followergluharscout": {},
+        "followergluharsecurity": {},
+        "followerkojaniy": {},
+        "marksman": {},
+        "pmcbot": {},
+        "usec": {}
     },
     "customization": {
         "offers": {},
         "outfits": {}
     },
+    "dialogues": {},
     "hideout": {
         "settings": "",
         "areas": {},
@@ -50,7 +47,6 @@
     "items": {},
     "locales": {},
     "locations": {},
-    "maps": {},
     "profile": {
         "character": {}
     },
@@ -58,6 +54,10 @@
     "ragfair": {
         "offer": "",
         "search": ""
+    },
+    "src": {
+        "classes": {},
+        "responses": {}
     },
     "templates": {
         "categories": {},

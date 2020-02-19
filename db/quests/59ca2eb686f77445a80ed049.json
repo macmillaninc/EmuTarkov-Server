@@ -101,7 +101,7 @@
 			{
 				"_parent": "CounterCreator",
 				"_props": {
-					"value": "20",
+					"value": "15",
 					"type": "Elimination",
 					"counter": {
 						"id": "59ca2fba86f77445e4732b24",

@@ -140,7 +140,7 @@
 				"_props": {
 					"target": "Sniper",
 					"compareMethod": ">=",
-					"value": "9",
+					"value": "7",
 					"index": 0,
 					"parentId": "",
 					"id": "5a28235e86f7741da250b438"

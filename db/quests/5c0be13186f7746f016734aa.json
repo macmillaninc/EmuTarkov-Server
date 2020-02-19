@@ -6,7 +6,7 @@
 	"type": "Skill",
 	"isKey": false,
 	"restartable": false,
-	"min_level": 0,
+	"min_level": 1,
 	"canShowNotificationsInGame": true,
 	"rewards": {
 		"Started": [],
@@ -83,7 +83,7 @@
 				"_props": {
 					"target": "Sniper",
 					"compareMethod": ">=",
-					"value": "12",
+					"value": "9",
 					"index": 0,
 					"parentId": "",
 					"id": "5c0be2b486f7747bcb347d58"

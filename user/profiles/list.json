@@ -1,26 +1,10 @@
 {
-	1: {
+	"1": {
 		"id": 1,
-		"nickname": "senko",
-		"email": "senko@jetdev.com",
-		"password": "password",
-		"wipe": false,
-		"edition": "eod"
-	},
-	2: {
-		"id": 2,
 		"nickname": "user",
 		"email": "user@jet.com",
 		"password": "password",
 		"wipe": true,
 		"edition": "std"
-	},
-	3: {
-		"id": 3,
-		"nickname": "hardcore",
-		"email": "hardcore@jet.com",
-		"password": "password",
-		"wipe": true,
-		"edition": "hardcore"
 	}
 }

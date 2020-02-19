@@ -233,7 +233,7 @@
 			{
 				"_parent": "CounterCreator",
 				"_props": {
-					"value": "15",
+					"value": "10",
 					"type": "Elimination",
 					"counter": {
 						"id": "59674d5186f77446b879d5f6",
@@ -273,7 +273,7 @@
 			{
 				"_parent": "CounterCreator",
 				"_props": {
-					"value": "15",
+					"value": "10",
 					"type": "Elimination",
 					"counter": {
 						"id": "59ca27f786f77445aa0ddc13",
