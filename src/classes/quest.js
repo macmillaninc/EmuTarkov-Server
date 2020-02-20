@@ -74,7 +74,7 @@ function completeQuest(pmcData, body, sessionID) {
                         
                         for (let i = 0; i < count; i++) {
                             questRewards.push(rewardItem);
-                        };
+                        }
 
                         continue;
                     }

@@ -16,7 +16,7 @@
         "note_f": "src/classes/notes.js",
         "move_f": "src/classes/move.js",
         "status_f": "src/classes/status.js",
-        "wishList_f": "src/classes/wishList.js",
+        "wishList_f": "src/classes/wishlist.js",
         "trade_f": "src/classes/trade.js",
         "customization_f": "src/classes/customization.js",
         "hideout_f": "src/classes/hideout.js",

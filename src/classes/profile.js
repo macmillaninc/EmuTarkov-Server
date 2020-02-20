@@ -135,7 +135,7 @@ class ProfileServer {
 
 function getPmcPath(sessionID) {
     let pmcPath = filepaths.user.profiles.character;
-    return pmcPath.replace("__REPLACEME__", sessionID);;
+    return pmcPath.replace("__REPLACEME__", sessionID);
 }
 
 function getStashType(sessionID) {

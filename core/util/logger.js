@@ -74,7 +74,7 @@ class Logger {
 
         // write the logged data to the file
         this.fileStream.write(util.format(data) + '\n');
-    };
+    }
 
     logError(text) {
         this.log("[ERROR] " + text, "white", "red");
