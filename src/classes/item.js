@@ -6,7 +6,6 @@ class ItemServer {
         this.routes = {};
 
         this.resetOutput();
-        router.addStaticRoute("/client/game/profile/items/moving", this.handleRoutes.bind(this));
     }
 
     /* adds route to check for */
@@ -14,7 +13,7 @@ class ItemServer {
         this.routes[route] = callback;
     }
 
-    handleRoutes(url, info, sessionID) {
+    handleRoutes(info, sessionID) {
         let result = "";
         
         for (let body of info.data) {

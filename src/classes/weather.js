@@ -1,6 +1,10 @@
 "use strict";
 
-let weather = json.parse(json.read(filepaths.user.cache.weather));
+let weather = undefined;
+
+function initialize() {
+    weather = json.parse(json.read(db.user.cache.weather));
+}
 
 function generate() {
     let output = {};
@@ -29,4 +33,5 @@ function generate() {
     return output;
 }
 
+module.exports.initialize = initialize;
 module.exports.generate = generate;

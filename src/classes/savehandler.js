@@ -29,5 +29,5 @@ function saveOpenSessions() {
 	}
 }
 
-initialize();
+module.exports.initialize = initialize;
 module.exports.saveOpenSessions = saveOpenSessions;

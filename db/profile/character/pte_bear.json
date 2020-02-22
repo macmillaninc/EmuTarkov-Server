@@ -10,21 +10,21 @@
         "Level": 1,
         "Experience": 0,
         "RegistrationDate": 1577890800,
-		"GameVersion": "edge_of_darkness",
-		"AccountType": 0,
-		"MemberCategory": "Default",
-		"lockedMoveCommands": false,
-		"SavageLockTime": 0,
-		"LastTimePlayedAsSavage": 0,
-		"Settings": {
-			"Role": "assault",
-			"BotDifficulty": "easy",
-			"Experience": -1
-		},
-		"NeedWipe": false,
-		"GlobalWipe": false,
-		"NicknameChangeDate": 0,
-		"Bans": []
+	"GameVersion": "standard",
+	"AccountType": 0,
+	"MemberCategory": "Default",
+	"lockedMoveCommands": false,
+	"SavageLockTime": 0,
+	"LastTimePlayedAsSavage": 0,
+	"Settings": {
+		"Role": "assault",
+		"BotDifficulty": "easy",
+		"Experience": -1
+	},
+	"NeedWipe": false,
+	"GlobalWipe": false,
+	"NicknameChangeDate": 0,
+	"Bans": []
 	},
 	"Customization": {
         "Head": "5cc084dd14c02e000b0550a3",

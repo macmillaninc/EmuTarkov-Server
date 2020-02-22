@@ -5,7 +5,8 @@ function getRandomValue(node) {
 	return json.parse(json.read(node[keys[utility.getRandomInt(0, keys.length - 1)]]));
 }
 
-function addDogtag(bot) {
+function addDogtag(bot, sessionID) {
+	let pmcData = profile_f.profileServer.getPmcProfile(sessionID);
 	let dogtagItem = {
 		_id: utility.generateNewItemId(),
 		_tpl: ((bot.Info.Side === 'Usec') ? "59f32c3b86f77472a31742f0" : "59f32bb586f774757e1e8442"),
@@ -16,12 +17,11 @@ function addDogtag(bot) {
 				"Nickname": bot.Info.Nickname,
 				"Side": bot.Info.Side,
 				"Level": bot.Info.Level,
-				"Time": "2020-01-01T00:00:00",
-				"Status": "Killed by JET",
-				"KillerName": 'JustEmuTarkov',
-				"WeaponName": "JET Reverse Engineering"
-			},
-			"SpawnedInSession": "true"
+				"Time": (new Date().toISOString()),
+				"Status": "Killed by ",
+				"KillerName": pmcData.Info.Nickname,
+				"WeaponName": "A Magical Force"
+			}
 		}
 	}
 
@@ -51,7 +51,7 @@ function removeSecureContainer(bot) {
 	return bot;
 }
 
-function generateBot(bot, role) {
+function generateBot(bot, role, sessionID) {
 	let type = (role === "cursedAssault") ? "assault" : role;
 	let node = {};
 
@@ -79,7 +79,7 @@ function generateBot(bot, role) {
 	}
 
 	// generate bot
-	node = filepaths.bots[type.toLowerCase()];
+	node = db.bots[type.toLowerCase()];
 
 	bot.Info.Settings.Role = role;
 	bot.Info.Nickname = getRandomValue(node.names);
@@ -94,7 +94,7 @@ function generateBot(bot, role) {
 
 	// add dogtag to PMC's		
 	if (type === "usec" || type === "bear") {
-		bot = addDogtag(bot);
+		bot = addDogtag(bot, sessionID);
 	}
 
 	// remove secure container
@@ -103,16 +103,16 @@ function generateBot(bot, role) {
 	return bot;
 }
 
-function generate(databots) {
+function generate(info, sessionID) {
 	let generatedBots = []; 
 
-	for (let condition of databots.conditions) {
+	for (let condition of info.conditions) {
 		for (let i = 0; i < condition.Limit; i++)  {
-			let bot = json.parse(json.read(filepaths.bots.base));
+			let bot = json.parse(json.read(db.bots.base));
 
 			bot._id = "bot" + utility.getRandomIntEx(99999999);
 			bot.Info.Settings.BotDifficulty = condition.Difficulty;
-			bot = generateBot(bot, condition.Role);
+			bot = generateBot(bot, condition.Role, sessionID);
 			generatedBots.unshift(bot);
 		}
 	}

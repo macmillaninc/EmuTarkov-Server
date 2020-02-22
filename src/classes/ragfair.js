@@ -63,191 +63,173 @@ function sortOffers(request, offers) {
     return offers;
 }
 
-function getOffers(request) {
-    let response = json.parse(json.read(filepaths.ragfair.search));
-
-    if (Object.entries(request.buildItems).length != 0) {
-        createOfferFromBuild(request.buildItems,response);
-    } else if (request.handbookId !== "" && request.linkedSearchId !== "") {
-        //list specific category from a linked search
-        let linkedSearch = getLinkedSearchList(request.linkedSearchId,response);
-        let categorySearch = getCategoryList(request.handbookId);
-        let offers = [];
-
-        for (let p1 in categorySearch) {
-            for (let search in linkedSearch) {
-                if (p1 === search) {
-                    offers = offers.concat(createOffer(search, linkedSearch[search]));
+/* Scans a given slot type for filters and returns them as a Set */
+function getFilters(item, slot) {
+    let result = new Set();
+    if (slot in item._props && item._props[slot].length) {
+        for (let sub of item._props[slot]) {
+            if ("_props" in sub && "filters" in sub._props) {
+                for (let filter of sub._props.filters) {
+                    for (let f of filter.Filter) {
+                        result.add(f);
+                    }
                 }
             }
         }
-
-        response.data.offers = sortOffers(request, offers);
-    } else if (request.linkedSearchId !== "") {
-        let offers_tpl = getLinkedSearchList(request.linkedSearchId,response);
-        let offers = [];
-
-        for (let price in offers_tpl) {
-            offers = offers.concat(createOffer(price, offers_tpl[price]));
-        }
-
-        response.data.offers = sortOffers(request, offers);
-    } else if (request.handbookId !== "") {
-        let offers_tpl = getCategoryList(request.handbookId);
-        let offers = [];
-
-        for (let price in offers_tpl) {
-            offers = offers.concat(createOffer(price, offers_tpl[price]));
-        }
-
-        response.data.offers = sortOffers(request, offers);
     }
+
+    return result;
+}
+
+/* Like getFilters but breaks early and return true if id is found in filters */
+function isInFilter(id, item, slot) {
+    if (slot in item._props && item._props[slot].length) {
+        for (let sub of item._props[slot]) {
+            if ("_props" in sub && "filters" in sub._props) {
+                for (let filter of sub._props.filters) {
+                    if (filter.Filter.includes(id)) {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+/* Because of presets, categories are not always 1 */
+function countCategories(response) {
+    let categ = {};
+
+    for (let offer of response.data.offers) {
+        let item = offer.items[0]; // only the first item can have presets
+
+        categ[item._tpl] = categ[item._tpl] || 0;
+        categ[item._tpl]++;
+    }
+
+    // not in search mode, add back non-weapon items
+    for (let c in response.data.categories) {
+        if (!categ[c]) {
+            categ[c] = 1;
+        }
+    }
+
+    response.data.categories = categ;
+}
+
+function getOffers(request) {
+    let response = json.parse(json.read(db.ragfair.search));
+    let itemsToAdd = [];
+    let offers = [];
+
+    if (request.linkedSearchId || request.neededSearchId) {
+        response.data.categories = {};
+    }
+
+    if (request.buildCount) {
+        // Case: weapon builds
+        itemsToAdd = itemsToAdd.concat(Object.keys(request.buildItems));
+    } else {
+        // Case: search
+        if (request.linkedSearchId) {
+            itemsToAdd = getLinkedSearchList(request.linkedSearchId);
+        } else if (request.neededSearchId) {
+            itemsToAdd = getNeededSearchList(request.neededSearchId);
+        }
+
+        // Case: category
+        if (request.handbookId) {
+            let handbook = getCategoryList(request.handbookId);
+
+            if (itemsToAdd.length) {
+                itemsToAdd = itm_hf.arrayIntersect(itemsToAdd, handbook);
+            } else {
+                itemsToAdd = handbook;
+            }
+        }
+    }
+
+    for (let it of itemsToAdd) {
+        offers = offers.concat(createOffer(it, request.onlyFunctional, request.buildCount === 0));
+    }
+
+    response.data.offers = sortOffers(request, offers);
+    countCategories(response);
 
     return json.stringify(response);
 }
 
-function getLinkedSearchList(linkedSearchId, response) {
-    let tableOfItems = {};
-    let itemLink = items.data[linkedSearchId];
+function getLinkedSearchList(linkedSearchId) {
+    let item = items.data[linkedSearchId];
+    // merging all possible filters without duplicates
+    let result = new Set([
+        ...getFilters(item, "Slots"),
+        ...getFilters(item, "Chambers"),
+        ...getFilters(item, "Cartridges")
+        ]);
 
-    response.data.categories = {};
+    return Array.from(result);
+}
 
-    if ("Slots" in itemLink._props) {
-        for (let itemSlot of itemLink._props.Slots) {
-            for (let itemSlotFilter of itemSlot._props.filters) {
-                for (let mod of itemSlotFilter.Filter) {
-                    let item = itm_hf.getTemplateItem(mod);
+function getNeededSearchList(neededSearchId) {
+    let result = [];
 
-                    tableOfItems[mod] = item.Price;
-                    response.data.categories[mod] = 1;
-                }
-            }
+    for (let item of Object.values(items.data)) {
+        if (isInFilter(neededSearchId, item, "Slots")
+         || isInFilter(neededSearchId, item, "Chambers")
+         || isInFilter(neededSearchId, item, "Cartridges")) {
+            result.push(item._id);
         }
     }
 
-    if ("Chambers" in itemLink._props) {
-        for (let patron of itemLink._props.Chambers[0]._props.filters[0].Filter) {
-            let item = itm_hf.getTemplateItem(patron);
-
-            tableOfItems[patron] = item.Price;
-            response.data.categories[patron] = 1;
-        }
-    }
-
-    if (itemLink._props.hasOwnProperty("Cartridges")
-    && itemLink._props.Cartridges.length // it seems cartridges only has 0 or 1 element
-    && itemLink._props.Cartridges[0].hasOwnProperty("_props")
-    && itemLink._props.Cartridges[0]._props.hasOwnProperty("filters")
-    && itemLink._props.Cartridges[0]._props.filters.length // it seems filters only has 1 element
-    && itemLink._props.Cartridges[0]._props.filters[0].hasOwnProperty("Filter")) {
-        let filters = itemLink._props.Cartridges[0]._props.filters[0].Filter;
-
-        for (let filter of filters) {
-            let item = itm_hf.getTemplateItem(filter);
-
-            tableOfItems[filter] = item.Price;
-            response.data.categories[filter] = 1;
-        }
-    }
-    
-    return tableOfItems;
+    return result;
 }
 
 function getCategoryList(handbookId) {
-    let tableOfItems = {};
-    let isCateg = false;
+    let result = [];
 
     // if its "mods" great-parent category, do double recursive loop
     if (handbookId === "5b5f71a686f77447ed5636ab") {
-        for (let categ2 of templates.data.Categories) {
-            if (categ2.ParentId === "5b5f71a686f77447ed5636ab") {
-                for (let categ3 of templates.data.Categories) {
-                    if (categ3.ParentId === categ2.Id) {
-                        for (let item of templates.data.Items) {
-                            if (item.ParentId === categ3.Id) {
-                                tableOfItems[item.Id] = item.Price;
-                            }
-                        }
-                    }
-                }
+        for (let categ2 of itm_hf.childrenCategories(handbookId)) {
+            for (let categ3 of itm_hf.childrenCategories(categ2)) {
+                result = result.concat(itm_hf.templatesWithParent(categ3));
             }
         }
     } else {
-        for (let categ of templates.data.Categories) {
-            // find the category in the templates
-            if (categ.Id === handbookId) {
-                isCateg = true;
+        if (itm_hf.isCategory(handbookId)) {
+            // list all item of the category
+            result = result.concat(itm_hf.templatesWithParent(handbookId));
 
-                // list all item of the category
-                for (let item of templates.data.Items) {
-                    if (item.ParentId === categ.Id) {
-                        tableOfItems[item.Id] = item.Price;
-                    }
-                }
-
-                // recursive loops for sub categories
-                for (let categ2 of templates.data.Categories) {
-                    if (categ2.ParentId === categ.Id) {
-                        for (let item of templates.data.Items) {
-                            if (item.ParentId === categ2.Id) {
-                                tableOfItems[item.Id] = item.Price;
-                            }
-                        }
-                    }
-                }
+            for (let categ of itm_hf.childrenCategories(handbookId)) {
+                result = result.concat(itm_hf.templatesWithParent(categ));
             }
-        }
-
-        // its a specific item searched then
-        if (isCateg === false) {
-            for (let curItem in items.data) {
-                if (curItem === handbookId) {
-                    let item = itm_hf.getTemplateItem(handbookId);
-                    tableOfItems[curItem] = item.Price;
-                    break;
-                }
-            }
+        } else {
+            // its a specific item searched then
+            result.push(handbookId);
         }
     }
 
-    return tableOfItems;
+    return result;
 }
 
-function createOfferFromBuild(buildItems,response) {
-    for (let itemFromBuild in buildItems) {
-        for (let curItem in items.data) {
-            if (curItem === itemFromBuild) {
-                let item = itm_hf.getTemplateItem(itemFromBuild);
-                response.data.offers = response.data.offers.concat(createOffer(curItem, item.Price, false));
-                break;
-            }
-        }
-    }
-
-    return response
-}
-
-function createOffer(template, price, usePresets = true) {
-    let offerBase = json.parse(json.read(filepaths.ragfair.offer));
+function createOffer(template, onlyFunc, usePresets = true) {
+    let offerBase = json.parse(json.read(db.ragfair.offer));
     let offers = [];
 
     // Preset
     if (usePresets && preset_f.itemPresets.hasPreset(template)) {
         let presets = preset_f.itemPresets.getPresets(template);
-        
         for (let p of presets) {
             let offer = itm_hf.clone(offerBase);
             let mods = p._items;
             let rub = 0;
-            
             for (let it of mods) {
-                // TODO handles cartridges
-                rub += itm_hf.getTemplateItem(it._tpl).Price;
+                rub += itm_hf.getTemplatePrice(it._tpl);
             }
-            
             mods[0].upd = mods[0].upd || {}; // append the stack count
             mods[0].upd.StackObjectsCount = offerBase.items[0].upd.StackObjectsCount;
-
             offer._id = p._id;               // The offer's id is now the preset's id
             offer.root = mods[0]._id;        // Sets the main part of the weapon
             offer.items = mods;
@@ -257,16 +239,12 @@ function createOffer(template, price, usePresets = true) {
     }
 
     // Single item
-    let rubPrice = Math.round(price * settings.gameplay.trading.ragfairMultiplier);
-    offerBase._id = template;
-    offerBase.items[0]._tpl = template;
-    offerBase.requirements[0].count = rubPrice;
-    offerBase.itemsCost = rubPrice;
-    offerBase.requirementsCost = rubPrice;
-    offerBase.summaryCost = rubPrice;
-    offers.push(offerBase);
-    //offerBase.startTime = utility.getTimestamp() - 1000;
-    //offerBase.endTime = utility.getTimestamp() + 43200;
+    if (!preset_f.itemPresets.hasPreset(template) || !onlyFunc) {
+        offerBase._id = template;
+        offerBase.items[0]._tpl = template;
+        offerBase.requirements[0].count = Math.round(itm_hf.getTemplatePrice(template) * settings.gameplay.trading.ragfairMultiplier);
+        offers.push(offerBase);
+    }
 
     return offers;
 }

@@ -1,15 +1,15 @@
 ﻿"use strict";
 
 function getLanguages() {
-    return json.read(filepaths.user.cache.languages);
+    return json.read(db.user.cache.languages);
 }
 
 function getMenu(lang = "en") {
-    return json.read(filepaths.locales[lang.toLowerCase()].menu);
+    return json.read(db.locales[lang.toLowerCase()].menu);
 }
 
 function getGlobal(lang = "en") {
-    return json.read(filepaths.user.cache["locale_" + lang.toLowerCase()]);
+    return json.read(db.user.cache["locale_" + lang.toLowerCase()]);
 }
 
 module.exports.getLanguages = getLanguages;

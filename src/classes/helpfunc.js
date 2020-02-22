@@ -1,5 +1,52 @@
 "use strict";
 
+/* A reverse lookup for templates */
+function createLookup() {
+    let lookup = {
+        items: {
+            byId: {},
+            byParent: {}
+        },
+        categories: {
+            byId: {},
+            byParent: {}
+        }
+    }
+
+    for (let x of templates.data.Items) {
+        lookup.items.byId[x.Id] = x.Price;
+        lookup.items.byParent[x.ParentId] || (lookup.items.byParent[x.ParentId] = []);
+        lookup.items.byParent[x.ParentId].push(x.Id);
+    }
+
+    for (let x of templates.data.Categories) {
+        lookup.categories.byId[x.Id] = x.ParentId ? x.ParentId : null;
+        if (x.ParentId) { // root as no parent
+            lookup.categories.byParent[x.ParentId] || (lookup.categories.byParent[x.ParentId] = []);
+            lookup.categories.byParent[x.ParentId].push(x.Id);
+        }
+    }
+
+    return lookup;
+}
+
+function getTemplatePrice(x) {
+    return (x in tplLookup.items.byId) ? tplLookup.items.byId[x] : 1;
+}
+
+/* all items in template with the given parent category */
+function templatesWithParent(x) {
+    return (x in tplLookup.items.byParent) ? tplLookup.items.byParent[x] : [];
+}
+
+function isCategory(x) {
+    return x in tplLookup.categories.byId;
+}
+
+function childrenCategories(x) {
+    return (x in tplLookup.categories.byParent) ? tplLookup.categories.byParent[x] : [];
+}
+
 /* Made a 2d array table with 0 - free slot and 1 - used slot
 * input: PlayerData
 * output: table[y][x]
@@ -67,13 +114,7 @@ function getCurrency(currency) {
 * output: value after conversion
 */
 function inRUB(value, currency) {
-    for (let template of templates.data.Items) {
-        if (template.Id === currency) {
-            return Math.round(value * template.Price);
-        }
-    }
-    
-    return value;
+    return Math.round(value * getTemplatePrice(currency));
 }
 
 /* Gets Ruble to Currency conversion Value
@@ -81,13 +122,7 @@ function inRUB(value, currency) {
 * output: value after conversion
 * */
 function fromRUB(value, currency) {
-    for (let template of templates.data.Items) {
-        if (template.Id === currency) {
-            return Math.round(value / template.Price);
-        }
-    }
-    
-    return value;
+    return Math.round(value / getTemplatePrice(currency));
 }
 
 /* take money and insert items into return to server request
@@ -239,7 +274,7 @@ function getMoney(pmcData, amount, body, output, sessionID) {
     let tmpTraderInfo = trader_f.traderServer.getTrader(body.tid, sessionID);
     let currency = getCurrency(tmpTraderInfo.data.currency);
     let calcAmount = fromRUB(inRUB(amount, currency), currency);
-    let maxStackSize = (json.parse(json.read(filepaths.items[currency])))._props.StackMaxSize;
+    let maxStackSize = (json.parse(json.read(db.items[currency])))._props.StackMaxSize;
     let skip = false;
 
     for (let item of pmcData.Inventory.items) {
@@ -601,20 +636,19 @@ function replaceIDs(pmcData, items) {
     return items;
 }
 
-//TODO change templates.data.Items to a dictionary to avoid all those loops
-function getTemplateItem(templateId) {
-    for (let template of templates.data.Items) {
-        if (template.Id === templateId) {
-            return template;
-        }
-    }
-    return false;
-}
-
 function clone(x) {
     return json.parse(json.stringify(x));
 }
 
+function arrayIntersect(a, b) {
+    return a.filter(x => b.includes(x));
+}
+
+module.exports.createLookup = createLookup;
+module.exports.getTemplatePrice = getTemplatePrice;
+module.exports.templatesWithParent = templatesWithParent;
+module.exports.isCategory = isCategory;
+module.exports.childrenCategories = childrenCategories;
 module.exports.recheckInventoryFreeSpace = recheckInventoryFreeSpace;
 module.exports.getCurrency = getCurrency;
 module.exports.inRUB = inRUB;
@@ -630,5 +664,5 @@ module.exports.findAndReturnChildrenByItems = findAndReturnChildrenByItems;
 module.exports.isDogtag = isDogtag;
 module.exports.isNotSellable = isNotSellable;
 module.exports.replaceIDs = replaceIDs;
-module.exports.getTemplateItem = getTemplateItem;
 module.exports.clone = clone;
+module.exports.arrayIntersect = arrayIntersect;

@@ -360,6 +360,9 @@ function addItem(pmcData, body, output, sessionID, foundInRaid = false) {
         items = globals.data.ItemPresets[body.item_id]._items;
         body.item_id = items[0]._id;
     }
+    else if ("579dc571d53a0658a154fbec" === body.tid) {
+        items = [{_id: body.item_id, _tpl: body.item_id}];
+    }
     else {
         items = trader_f.traderServer.getAssort(body.tid).data.items;
     }

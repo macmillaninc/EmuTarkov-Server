@@ -7,10 +7,6 @@ function buyItem(pmcData, body, sessionID) {
     }
 
     logger.logSuccess("Bought item: " + body.item_id);
-
-    if (body.tid === "579dc571d53a0658a154fbec") {
-        body.tid = "ragfair";
-    }
     
     return move_f.addItem(pmcData, body, item_f.itemServer.getOutput(), sessionID);
 }
@@ -79,7 +75,7 @@ function confirmRagfairTrading(pmcData, body, sessionID) {
         body = {};
         body.Action = "TradingConfirm";
         body.type = "buy_from_trader";
-        body.tid = "ragfair";
+        body.tid = "579dc571d53a0658a154fbec";
         body.item_id = offer.id;
         body.count = offer.count;
         body.scheme_id = 0;

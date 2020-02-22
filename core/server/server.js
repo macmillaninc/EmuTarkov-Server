@@ -24,6 +24,7 @@ function getCookies(req) {
 class Server {
     constructor() {
         this.buffers = {};
+        this.startCallback = {};
         this.receiveCallback = {};
         this.respondCallback = {};
         this.ip = settings.server.ip;
@@ -63,6 +64,10 @@ class Server {
     
     getFromBuffer(sessionID) {
         return this.buffers[sessionID].buffer;
+    }
+
+    addStartCallback(type, worker) {
+        this.startCallback[type] = worker;
     }
 
     addReceiveCallback(type, worker) {
@@ -136,7 +141,7 @@ class Server {
             output = router.getResponse(req, "", sessionID);
         }
 
-        // execute data received callbacl
+        // execute data received callback
         for (let type in this.receiveCallback) {
             this.receiveCallback[type](sessionID, req, resp, body, output);
         }
@@ -201,6 +206,12 @@ class Server {
 
         this.backendUrl = "https://" + this.ip + ":" + this.httpsPort;
     
+        // execute start callback
+        for (let type in this.startCallback) {
+            logger.logWarning("Executing callback type " + type);
+            this.startCallback[type]();
+        }
+
         /* create server (https: game, http: launcher) */
         let httpsServer = https.createServer(this.generateCertifcate(), (req, res) => {
             this.handleRequest(req, res);

@@ -1,10 +1,16 @@
 "use strict";
 
-const hideoutAreas = json.parse(json.read(filepaths.user.cache.hideout_areas));
-const hideoutProduction = json.parse(json.read(filepaths.user.cache.hideout_production));
-const hideoutScavcase = json.parse(json.read(filepaths.user.cache.hideout_scavcase));
+let areas = undefined;
+let production = undefined;
+let scavcase = undefined;
 
-function HideoutUpgrade(pmcData, body, sessionID) {
+function initialize() {
+	areas = json.parse(json.read(db.user.cache.hideout_areas));
+	production = json.parse(json.read(db.user.cache.hideout_production));
+	scavcase = json.parse(json.read(db.user.cache.hideout_scavcase));
+}
+
+function hideoutUpgrade(pmcData, body, sessionID) {
 	for (let itemToPay of body.items) {
 		for (let inventoryItem in pmcData.Inventory.items) {
 			if (pmcData.Inventory.items[inventoryItem]._id !== itemToPay.id) {
@@ -26,9 +32,9 @@ function HideoutUpgrade(pmcData, body, sessionID) {
 			continue;
 		}
 
-		for (let hideout_stage in hideoutAreas.data) {	
-			if (hideoutAreas.data[hideout_stage].type === body.areaType) {
-				let ctime = hideoutAreas.data[hideout_stage].stages[pmcData.Hideout.Areas[hideoutArea].level + 1].constructionTime;
+		for (let hideout_stage in areas.data) {	
+			if (areas.data[hideout_stage].type === body.areaType) {
+				let ctime = areas.data[hideout_stage].stages[pmcData.Hideout.Areas[hideoutArea].level + 1].constructionTime;
 			
 				if (ctime > 0) {	
 					let timestamp = Math.floor(Date.now() / 1000);
@@ -45,7 +51,7 @@ function HideoutUpgrade(pmcData, body, sessionID) {
 
 // validating the upgrade
 // TODO: apply bonusses or is it automatically applied? 
-function HideoutUpgradeComplete(pmcData, body, sessionID) {
+function hideoutUpgradeComplete(pmcData, body, sessionID) {
 	for (let hideoutArea of pmcData.Hideout.Areas) {
 		if (hideoutArea.type !== body.areaType) {
 			continue;
@@ -83,7 +89,7 @@ function HideoutUpgradeComplete(pmcData, body, sessionID) {
 }
 
 // move items from hideout
-function HideoutPutItemsInAreaSlots(pmcData, body, sessionID) {
+function hideoutPutItemsInAreaSlots(pmcData, body, sessionID) {
 	let output = item_f.itemServer.getOutput();
 
 	for (let itemToMove in body.items) {
@@ -108,7 +114,7 @@ function HideoutPutItemsInAreaSlots(pmcData, body, sessionID) {
 	return output;
 }
 
-function HideoutTakeItemsFromAreaSlots(pmcData, body, sessionID) {
+function hideoutTakeItemsFromAreaSlots(pmcData, body, sessionID) {
 	let output = item_f.itemServer.getOutput();
 
 	for (let area in pmcData.Hideout.Areas) {
@@ -120,7 +126,7 @@ function HideoutTakeItemsFromAreaSlots(pmcData, body, sessionID) {
 
 		newReq.item_id = pmcData.Hideout.Areas[area].slots[0].item[0]._tpl;
 		newReq.count = 1;
-		newReq.tid = "ragfair";
+		newReq.tid = "579dc571d53a0658a154fbec";
 		
 		output = move_f.addItem(pmcData, newReq, output, sessionID);
 		
@@ -131,7 +137,7 @@ function HideoutTakeItemsFromAreaSlots(pmcData, body, sessionID) {
 	return output;
 }
 
-function HideoutToggleArea(pmcData, body, sessionID) {
+function hideoutToggleArea(pmcData, body, sessionID) {
 	for (let area in pmcData.Hideout.Areas) {
 		if (pmcData.Hideout.Areas[area].type == body.areaType) {	
 			pmcData.Hideout.Areas[area].active = body.enabled;
@@ -141,7 +147,7 @@ function HideoutToggleArea(pmcData, body, sessionID) {
 	return item_f.itemServer.getOutput();
 }
 
-function HideoutSingleProductionStart(pmcData, body, sessionID) {
+function hideoutSingleProductionStart(pmcData, body, sessionID) {
 	registerProduction(pmcData, body, sessionID);
 
 	let output = item_f.itemServer.getOutput();
@@ -153,7 +159,7 @@ function HideoutSingleProductionStart(pmcData, body, sessionID) {
 	return output;
 }
 
-function HideoutScavCaseProductionStart(pmcData, body, sessionID) {
+function scavCaseProductionStart(pmcData, body, sessionID) {
 	for (let moneyToEdit of body.items) {
 		for (let inventoryItem in pmcData.Inventory.items) {
 			if (pmcData.Inventory.items[inventoryItem]._id === moneyToEdit.id) {
@@ -162,15 +168,15 @@ function HideoutScavCaseProductionStart(pmcData, body, sessionID) {
 		}
 	}
 
-	let hideoutScavcase = json.parse(json.read(filepaths.user.cache.hideout_scavcase));
+	let scavcase = json.parse(json.read(db.user.cache.hideout_scavcase));
 
-	for (let receipe in hideoutScavcase.data) {	
-		if (body.recipeId == hideoutScavcase.data[receipe]._id) {
+	for (let receipe in scavcase.data) {	
+		if (body.recipeId == scavcase.data[receipe]._id) {
 			let rarityItemCounter = {};
 
-			for (let rarity in hideoutScavcase.data[receipe].EndProducts) {
-				if (hideoutScavcase.data[receipe].EndProducts[rarity].max > 0) {
-					rarityItemCounter[rarity] = hideoutScavcase.data[receipe].EndProducts[rarity].max;
+			for (let rarity in scavcase.data[receipe].EndProducts) {
+				if (scavcase.data[receipe].EndProducts[rarity].max > 0) {
+					rarityItemCounter[rarity] = scavcase.data[receipe].EndProducts[rarity].max;
 				}
 			}
 
@@ -207,16 +213,16 @@ function HideoutScavCaseProductionStart(pmcData, body, sessionID) {
 	return item_f.itemServer.getOutput();
 }
 
-function HideoutContinuousProductionStart(pmcData, body, sessionID) {
+function hideoutContinuousProductionStart(pmcData, body, sessionID) {
 	registerProduction(pmcData, body, sessionID);
 	return item_f.itemServer.getOutput();
 }
 
-function HideoutTakeProduction(pmcData, body, sessionID) {
+function hideoutTakeProduction(pmcData, body, sessionID) {
 	let output = item_f.itemServer.getOutput();
 
-	for (let receipe in hideoutProduction.data) {	
-		if (body.recipeId !== hideoutProduction.data[receipe]._id) {
+	for (let receipe in production.data) {	
+		if (body.recipeId !== production.data[receipe]._id) {
 			continue;
 		}
 
@@ -228,21 +234,24 @@ function HideoutTakeProduction(pmcData, body, sessionID) {
 		}
 
 		// create item and throw it into profile
-        let id = hideoutProduction.data[receipe].endProduct;
+		let id = production.data[receipe].endProduct;
+		
         if (preset_f.itemPresets.hasPreset(id)) {
             // replace the base item with its main preset
             id = preset_f.itemPresets.getStandardPreset(id)._id;
         }
-		let newReq = {};
-
-		newReq.item_id = id
-		newReq.count = hideoutProduction.data[receipe].count;
-		newReq.tid = "ragfair";
+		
+		let newReq = {
+			"item_id": id,
+			"count": production.data[receipe].count,
+			"tid": "579dc571d53a0658a154fbec"
+		};
+		
 		return move_f.addItem(pmcData, newReq, output, sessionID, true);	
 	}
 
-	for (let receipe in hideoutScavcase.data) {
-		if (body.recipeId !== hideoutScavcase.data[receipe]._id) {
+	for (let receipe in scavcase.data) {
+		if (body.recipeId !== scavcase.data[receipe]._id) {
 			continue;
 		}
 
@@ -258,7 +267,7 @@ function HideoutTakeProduction(pmcData, body, sessionID) {
 				pmcData = profile_f.profileServer.getPmcProfile(sessionID);
 				newReq.item_id = itemProd._tpl;
 				newReq.count = 1;
-				newReq.tid = "ragfair";
+				newReq.tid = "579dc571d53a0658a154fbec";
 
 				output = move_f.addItem(pmcData, newReq, output, sessionID, true);
 			}
@@ -272,9 +281,9 @@ function HideoutTakeProduction(pmcData, body, sessionID) {
 }
 
 function registerProduction(pmcData, body, sessionID) {
-	for (let receipe in hideoutProduction.data) {
-		if (body.recipeId === hideoutProduction.data[receipe]._id) {
-			pmcData.Hideout.Production[hideoutProduction.data[receipe].areaType] = { 
+	for (let receipe in production.data) {
+		if (body.recipeId === production.data[receipe]._id) {
+			pmcData.Hideout.Production[production.data[receipe].areaType] = { 
 				"Progress": 0,
 				"inProgress": true,
 				"RecipeId": body.recipeId,
@@ -285,12 +294,13 @@ function registerProduction(pmcData, body, sessionID) {
 	}
 }
 
-module.exports.hideoutUpgrade = HideoutUpgrade;
-module.exports.hideoutUpgradeComplete = HideoutUpgradeComplete;
-module.exports.hideoutPutItemsInAreaSlots = HideoutPutItemsInAreaSlots;
-module.exports.hideoutTakeItemsFromAreaSlots = HideoutTakeItemsFromAreaSlots;
-module.exports.hideoutToggleArea = HideoutToggleArea;
-module.exports.hideoutSingleProductionStart  = HideoutSingleProductionStart;
-module.exports.hideoutContinuousProductionStart = HideoutContinuousProductionStart;
-module.exports.hideoutScavCaseProductionStart = HideoutScavCaseProductionStart;
-module.exports.hideoutTakeProduction = HideoutTakeProduction;
+module.exports.initialize = initialize;
+module.exports.hideoutUpgrade = hideoutUpgrade;
+module.exports.hideoutUpgradeComplete = hideoutUpgradeComplete;
+module.exports.hideoutPutItemsInAreaSlots = hideoutPutItemsInAreaSlots;
+module.exports.hideoutTakeItemsFromAreaSlots = hideoutTakeItemsFromAreaSlots;
+module.exports.hideoutToggleArea = hideoutToggleArea;
+module.exports.hideoutSingleProductionStart  = hideoutSingleProductionStart;
+module.exports.hideoutContinuousProductionStart = hideoutContinuousProductionStart;
+module.exports.scavCaseProductionStart = scavCaseProductionStart;
+module.exports.hideoutTakeProduction = hideoutTakeProduction;

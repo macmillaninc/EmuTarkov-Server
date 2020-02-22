@@ -1,26 +1,36 @@
 "use strict";
 
+let customization = undefined;
+
+function initialize() {
+	customization = json.parse(json.read(db.user.cache.customization));
+}
+
+function getCustomization() {
+	return customization;
+}
+
 function getPath(sessionID) {
-	let path = filepaths.user.profiles.storage;
+	let path = db.user.profiles.storage;
 	return path.replace("__REPLACEME__", sessionID);
 }
 
 function wearClothing(pmcData, body, sessionID) {
 	// in case there is more suites to be wear
 	for (let i = 0; i < body.suites.length; i++) {
-		let costume_data = customizationOutfits.data[body.suites[i]];
+		let suite = customization.data[body.suites[i]];
 
 		// this parent reffers to Lower Node
-		if (costume_data._parent == "5cd944d01388ce000a659df9") {
+		if (suite._parent == "5cd944d01388ce000a659df9") {
 			// do only feet
-			pmcData.Customization.Feet = costume_data._props.Feet;
+			pmcData.Customization.Feet = suite._props.Feet;
 		}
 
 		// this parent reffers to Upper Node
-		if (costume_data._parent == "5cd944ca1388ce03a44dc2a4") {
+		if (suite._parent == "5cd944ca1388ce03a44dc2a4") {
 			// do only body and hands
-			pmcData.Customization.Body = costume_data._props.Body;
-			pmcData.Customization.Hands = costume_data._props.Hands;
+			pmcData.Customization.Body = suite._props.Body;
+			pmcData.Customization.Hands = suite._props.Hands;
 		}
 	}
 
@@ -29,42 +39,38 @@ function wearClothing(pmcData, body, sessionID) {
 
 function buyClothing(pmcData, body, sessionID) {
 	let output = item_f.itemServer.getOutput();
-	let item_toPay = body.items;
-	let customization_storage = json.parse(json.read(getPath(sessionID)));
+	let storage = json.parse(json.read(getPath(sessionID)));
+	let itemsToPay = [];
 
-	for (let i = 0; i < item_toPay.length; i++) {
-		for (let item in pmcData.Inventory.items) {
-			if (pmcData.Inventory.items[item]._id == item_toPay[i].id) {
-				if (pmcData.Inventory.items[item].upd.StackObjectsCount > item_toPay[i].count) {
-					// now change cash
-					pmcData.Inventory.items[item].upd.StackObjectsCount = pmcData.Inventory.items[item].upd.StackObjectsCount - item_toPay[i].count;
-					output.data.items.change.push({
-                        "_id": pmcData.Inventory.items[item]._id,
-                        "_tpl": pmcData.Inventory.items[item]._tpl,
-                        "parentId": pmcData.Inventory.items[item].parentId,
-                        "slotId": pmcData.Inventory.items[item].slotId,
-                        "location": pmcData.Inventory.items[item].location,
-                        "upd": {"StackObjectsCount": pmcData.Inventory.items[item].upd.StackObjectsCount}
-                    });
-					break;
-				} else if (pmcData.Inventory.items[item].upd.StackObjectsCount == item_toPay[i].count && item_toPay[i].del == true) {
-					output.data.items.del.push({"_id": item_toPay[i].id});
-                    pmcData.Inventory.items.splice(item, 1);					
-				}
-			}
-		}
-	}
+    // get the price of all items
+    for (let key of body.items) {
+        for (let item of pmcData.Inventory.items) {
+            if (item._id === key) {
+                let template = json.parse(json.read(db.templates.items[item._tpl]));
+                itemsToPay.push({"id": item._id, "count": Math.round(template.Price)});
+                break;
+            }
+        }
+    }
 
-	for (let offer of customizationOffers.data) {
+    // pay the item	to profile
+    if (!itm_hf.payMoney(pmcData, {scheme_items: itemsToPay, tid: body.tid}, sessionID)) {
+        logger.LogError("no money found");
+        return "";
+    }
+
+	for (let offer of trader_f.traderServer.getCustomization(body.tid)) {
 		if (body.offer == offer._id) {
-			customization_storage.data.suites.push(offer.suiteId);
+			storage.data.suites.push(offer.suiteId);
 		}
 	}
 
-	json.write(getPath(sessionID), customization_storage);
+	json.write(getPath(sessionID), storage);
 	return output;
 }
 
+module.exports.initialize = initialize;
+module.exports.getCustomization = getCustomization;
 module.exports.getPath = getPath;
 module.exports.wearClothing = wearClothing;
 module.exports.buyClothing = buyClothing;

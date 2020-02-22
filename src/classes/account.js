@@ -6,11 +6,15 @@
 */
 class AccountServer {
     constructor() {
-        this.accounts = json.parse(json.read(filepaths.user.profiles.list));
+        this.accounts = {};
+    }
+
+    initialize() {
+        this.accounts = json.parse(json.read(db.user.profiles.list));
     }
 
     saveToDisk() {
-        json.write(filepaths.user.profiles.list, this.accounts);
+        json.write(db.user.profiles.list, this.accounts);
     }
 
     find(sessionID) {

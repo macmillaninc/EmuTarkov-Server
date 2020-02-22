@@ -204,11 +204,11 @@ function generateEverythingTrader() {
         }
 
         // save everything
-        json.write("db/assort/ragfair/items/" + fileName + ".json", {_id: fileData._id, _tpl: fileData._id, parentId: "hideout", slotId: "hideout", upd: {UnlimitedCount: true, StackObjectsCount: 500000}});
-        json.write("db/assort/ragfair/barter/" + fileName + ".json", [[{count: price, _tpl: "5449016a4bdc2d6f028b456f"}]]);
-        json.write("db/assort/ragfair/level/" + fileName + ".json", 1);
+        json.write("db/assort/579dc571d53a0658a154fbec/items/" + fileName + ".json", {_id: fileData._id, _tpl: fileData._id, parentId: "hideout", slotId: "hideout", upd: {UnlimitedCount: true, StackObjectsCount: 500000}});
+        json.write("db/assort/579dc571d53a0658a154fbec/barter_Scheme/" + fileName + ".json", [[{count: price, _tpl: "5449016a4bdc2d6f028b456f"}]]);
+        json.write("db/assort/579dc571d53a0658a154fbec/loyal_level_items/" + fileName + ".json", 1);
 
-        console.log("done: ragfair <- " + fileName);
+        console.log("done: 579dc571d53a0658a154fbec <- " + fileName);
     }
 }
 

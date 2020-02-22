@@ -5,6 +5,8 @@ class TraderServer {
     constructor() {
         this.traders = {};
         this.assorts = {};
+        this.customization = {};
+
         this.initializeTraders();
     }
 
@@ -12,8 +14,18 @@ class TraderServer {
     initializeTraders() {
         logger.logWarning("Loading traders into RAM...");
 
-        for (let id in filepaths.traders) {
-            this.traders[id] = json.parse(json.read(filepaths.traders[id]));
+        for (let id in db.traders) {
+            this.traders[id] = json.parse(json.read(db.traders[id]));
+        }
+    }
+
+    initializeCustomization() {
+        logger.logWarning("Loading customization into RAM...");
+
+        for (let id in db.traders) {
+            if ("customization_" + id in db.user.cache) {
+                this.customization[id] = json.parse(json.read(db.user.cache["customization_" + id]));
+            }
         }
     }
 
@@ -27,10 +39,6 @@ class TraderServer {
 
         for (let traderId in this.traders) {
             let trader = this.traders[traderId];
-
-            if (traderId === "ragfair") {
-                continue;
-            }
 
             trader.loyalty.currentLevel = pmcData.TraderStandings[traderId].currentLevel;
             trader.loyalty.currentStanding = pmcData.TraderStandings[traderId].currentStanding;
@@ -93,10 +101,10 @@ class TraderServer {
             return;
         }
 
-        let base = json.parse(json.read(filepaths.user.cache["assort_" + traderId]));
+        let base = json.parse(json.read(db.user.cache["assort_" + traderId]));
 
         // 1 is min level, 4 is max level
-        if (traderId !== "ragfair") {
+        if (traderId !== "579dc571d53a0658a154fbec") {
             let keys = Object.keys(base.data.loyal_level_items);
             let level = this.traders[traderId].loyalty.currentLevel;
 
@@ -114,7 +122,7 @@ class TraderServer {
 
     generateFence() {
         let base = json.parse(json.read("db/cache/assort.json"));
-        let names = Object.keys(filepaths.assort.ragfair.loyal_level_items);
+        let names = Object.keys(db.assort["579dc571d53a0658a154fbec"].loyal_level_items);
         let added = [];
 
         for (let i = 0; i < settings.gameplay.trading.fenceAssortSize; i++) {
@@ -126,9 +134,9 @@ class TraderServer {
             }
 
             added.push(id);
-            base.data.items.push(json.parse(json.read(filepaths.assort.ragfair.items[id])));
-            base.data.barter_scheme[id] = json.parse(json.read(filepaths.assort.ragfair.barter_scheme[id]));
-            base.data.loyal_level_items[id] = json.parse(json.read(filepaths.assort.ragfair.loyal_level_items[id]));
+            base.data.items.push(json.parse(json.read(db.assort["579dc571d53a0658a154fbec"].items[id])));
+            base.data.barter_scheme[id] = json.parse(json.read(db.assort["579dc571d53a0658a154fbec"].barter_scheme[id]));
+            base.data.loyal_level_items[id] = json.parse(json.read(db.assort["579dc571d53a0658a154fbec"].loyal_level_items[id]));
         }
 
         this.assorts['579dc571d53a0658a154fbec'] = base;
@@ -172,10 +180,15 @@ class TraderServer {
         list.push(itemid);// it's required
         return list;
     }
+
+    getCustomization(traderId) {
+        return this.customization[traderId];
+    }
 }
 
 function getPurchasesData(tmpTraderInfo, sessionID) {
     let pmcData = profile_f.profileServer.getPmcProfile(sessionID);
+    let currency = itm_hf.getCurrency(trader_f.traderServer.getTrader(tmpTraderInfo, sessionID).data.currency);
     let output = {};
 
     // get sellable items
@@ -196,10 +209,10 @@ function getPurchasesData(tmpTraderInfo, sessionID) {
 
             // get real price
             price = price * count * settings.gameplay.trading.sellMultiplier;
-            price = itm_hf.fromRUB(price, itm_hf.getCurrency(trader_f.traderServer.getTrader(tmpTraderInfo, sessionID).data.currency));
+            price = itm_hf.fromRUB(price, currency);
             price = (price > 0 && price !== "NaN" ? price : 1);
             
-            output[item._id] = [[{"_tpl": item._tpl, "count": price.toFixed(0)}]];
+            output[item._id] = [[{"_tpl": currency, "count": price.toFixed(0)}]];
         }
     }
 

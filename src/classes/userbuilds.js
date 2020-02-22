@@ -1,7 +1,7 @@
 "use strict";
 
 function getPath(sessionID) {
-	let path = filepaths.user.profiles.userbuilds;
+	let path = db.user.profiles.userbuilds;
 	return path.replace("__REPLACEME__", sessionID);
 }
 

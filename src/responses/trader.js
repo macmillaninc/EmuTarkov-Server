@@ -4,19 +4,10 @@ function getTraderList(url, info, sessionID) {
     return json.stringify(trader_f.traderServer.getAllTraders(sessionID));
 }
 
-function getCustomizationOffers(url, info, sessionID) {
-    let tmpOffers = [];
-    let offers = customizationOffers;
+function getCustomization(url, info, sessionID) {
     let splittedUrl = url.split('/');
-
-    for (let offer of offers.data) {
-        if (offer.tid === splittedUrl[splittedUrl.length - 2]) {
-            tmpOffers.push(offer);
-        }
-    }
-
-    offers.data = tmpOffers;
-    return json.stringify(offers);
+    let traderId = splittedUrl[splittedUrl.length - 2];
+    return json.stringify({"err": 0, "errmsg": null, "data": trader_f.traderServer.getCustomization(traderId)});
 }
 
 function getProfilePurchases(url, info, sessionID) {
@@ -24,15 +15,15 @@ function getProfilePurchases(url, info, sessionID) {
 }
 
 function getTrader(url, info, sessionID) {
-    return json.stringify(trader_f.traderServer.getTrader(url.replace("/client/trading/api/getTrader/", ''), sessionID));
+    return json.stringify(trader_f.traderServer.getTrader(url.replace("/client/trading/api/getTrader/", ""), sessionID));
 }
 
 function getAssort(url, info, sessionID) {
-    return json.stringify(trader_f.traderServer.getAssort(url.replace("/client/trading/api/getTraderAssort/", '')));
+    return json.stringify(trader_f.traderServer.getAssort(url.replace("/client/trading/api/getTraderAssort/", "")));
 }
 
 router.addStaticRoute("/client/trading/api/getTradersList", getTraderList);
 router.addDynamicRoute("/client/trading/api/getUserAssortPrice/trader/", getProfilePurchases);
 router.addDynamicRoute("/client/trading/api/getTrader/", getTrader);
 router.addDynamicRoute("/client/trading/api/getTraderAssort/", getAssort);
-router.addDynamicRoute("/client/trading/customization/", getCustomizationOffers);
+router.addDynamicRoute("/client/trading/customization/", getCustomization);

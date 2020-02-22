@@ -69,10 +69,6 @@ function examineItem(pmcData, body, sessionID) {
 
     // trader
     if ("fromOwner" in body && body.fromOwner.type === "Trader") {
-        if (body.fromOwner.id === "579dc571d53a0658a154fbec") {
-            body.fromOwner.id = "ragfair";
-        }
-
         let tmpTraderAssort = trader_f.traderServer.getAssort(body.fromOwner.id);
 
         for (let item of tmpTraderAssort.data.items) {
@@ -95,6 +91,10 @@ function examineItem(pmcData, body, sessionID) {
         }
     }
 
+    if (preset_f.itemPresets.isPreset(returned)) {
+        returned = preset_f.itemPresets.getBaseItemTpl(returned);
+    }
+
     // item not found
     if (returned === "") {
         logger.logError("Cannot find proper item. Stopped.");
@@ -102,7 +102,7 @@ function examineItem(pmcData, body, sessionID) {
     }
 
     // item found
-    let data = json.parse(json.read(filepaths.items[returned]));
+    let data = json.parse(json.read(db.items[returned]));
 
     pmcData.Info.Experience += data._props.ExamineExperience;
     pmcData.Encyclopedia[returned] = true;
@@ -111,6 +111,9 @@ function examineItem(pmcData, body, sessionID) {
 }
 
 function readEncyclopedia(pmcData, body, sessionID) {
+    for (let id of body.ids) {
+        pmcData.Encyclopedia[id] = true;
+    }
     return item_f.itemServer.getOutput();
 }
 

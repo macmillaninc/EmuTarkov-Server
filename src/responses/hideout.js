@@ -1,19 +1,19 @@
 "use strict";
 
 function getHideoutRecipes(url, info, sessionID) {
-    return json.read(filepaths.user.cache.hideout_production);
+    return json.read(db.user.cache.hideout_production);
 }
 
 function getHideoutSettings(url, info, sessionID) {
-    return json.read(filepaths.hideout.settings);
+    return json.read(db.hideout.settings);
 }
 
 function getHideoutAreas(url, info, sessionID) {
-    return json.read(filepaths.user.cache.hideout_areas);
+    return json.read(db.user.cache.hideout_areas);
 }
 
 function getScavDatacaseRecipes(url, info, sessionID) {
-    return json.read(filepaths.user.cache.hideout_scavcase);
+    return json.read(db.user.cache.hideout_scavcase);
 }
 
 router.addStaticRoute("/client/hideout/production/recipes", getHideoutRecipes);

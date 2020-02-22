@@ -63,8 +63,8 @@ class ProfileServer {
     createProfile(info, sessionID) {
         let account = account_f.accountServer.find(sessionID);
         let folder = account_f.getPath(account.id);
-        let pmcData = json.parse(json.read(filepaths.profile.character[account.edition + "_" + info.side.toLowerCase()]));
-        let storage = json.parse(json.read(filepaths.profile.storage));
+        let pmcData = json.parse(json.read(db.profile.character[account.edition + "_" + info.side.toLowerCase()]));
+        let storage = json.parse(json.read(db.profile.storage));
 
         // pmc info
         pmcData._id = "pmc" + account.id;
@@ -79,7 +79,7 @@ class ProfileServer {
         storage.data.suites = (info.side === "Usec") ? ["5cde9ec17d6c8b04723cf479", "5cde9e957d6c8b0474535da7"] : ["5cd946231388ce000d572fe3", "5cd945d71388ce000a659dfb"];
 
         // set trader standing      
-        for (let trader of Object.keys(filepaths.traders)) {
+        for (let trader of Object.keys(db.traders)) {
             pmcData.TraderStandings[trader] = {
                 "currentLevel": 1,
                 "currentSalesSum": 0,
@@ -134,7 +134,7 @@ class ProfileServer {
 }
 
 function getPmcPath(sessionID) {
-    let pmcPath = filepaths.user.profiles.character;
+    let pmcPath = db.user.profiles.character;
     return pmcPath.replace("__REPLACEME__", sessionID);
 }
 
